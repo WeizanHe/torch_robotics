@@ -128,12 +128,17 @@ class EnvBase(ABC):
             for obj in self.obj_extra_list:
                 obj.render(ax, color='red', cmap='Reds')
 
-        ax.set_xlim(self.limits_np[0][0], self.limits_np[1][0])
-        ax.set_ylim(self.limits_np[0][1], self.limits_np[1][1])
+        # ax.set_xlim(self.limits_np[0][0], self.limits_np[1][0])
+        # ax.set_ylim(self.limits_np[0][1], self.limits_np[1][1])
+        ax.set_xlim(0, 2)
+        ax.set_ylim(0, 2)
         if self.dim == 3:
-            ax.set_zlim(self.limits_np[0][2], self.limits_np[1][2])
+            ax.set_zlim(0, 2)
+            # ax.set_zlim(self.limits_np[0][2], self.limits_np[1][2])
             ax.set_zlabel('z')
-        ax.set_aspect('equal')
+        
+        ax.set_aspect('auto')
+        # ax.set_aspect('equal')
 
         ax.set_xlabel('x')
         ax.set_ylabel('y')
@@ -209,13 +214,19 @@ class EnvBase(ABC):
             if fig is not None:
                 fig.colorbar(ctf, orientation='vertical')
 
-        ax.set_xlim(self.limits_np[0][0], self.limits_np[1][0])
-        ax.set_ylim(self.limits_np[0][1], self.limits_np[1][1])
+
+        # ax.set_xlim(self.limits_np[0][0], self.limits_np[1][0])
+        # ax.set_ylim(self.limits_np[0][1], self.limits_np[1][1])
+        ax.set_xlim(0, 2)
+        ax.set_ylim(0, 2)
         if self.dim == 3:
-            ax.set_zlim(self.limits_np[0][2], self.limits_np[1][2])
+            ax.set_zlim(0, 2)
             ax.set_title('Binary occupancy map')
+            # ax.set_zlim(self.limits_np[0][2], self.limits_np[1][2])
             ax.set_zlabel('z')
-        ax.set_aspect('equal')
+
+        ax.set_aspect('auto')
+        # ax.set_aspect('equal')
 
         ax.set_xlabel('x')
         ax.set_ylabel('y')

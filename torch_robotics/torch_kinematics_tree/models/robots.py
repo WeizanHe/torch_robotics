@@ -117,6 +117,26 @@ class DifferentiableFrankaPanda(DifferentiableTree):
         self.name = "differentiable_franka_panda"
         super().__init__(self.model_path, self.name, link_list=link_list, device=device)
 
+class DifferentiableDenso(DifferentiableTree):
+    def __init__(self, link_list: Optional[str] = None, gripper=False, device='cpu', grasped_object=None,
+                 use_collision_spheres=False):
+        
+        robot_file = get_robot_path() / 'denso_robot_description' / 'urdf' / 'denso_robot.urdf'
+
+        # Modify the urdf to append links of the collision model
+        if use_collision_spheres:
+            robot_file, link_collision_names, link_collision_margins = modidy_franka_panda_urdf_collision_model(robot_file)
+            self.link_collision_names = link_collision_names
+            self.link_collision_margins = link_collision_margins
+
+        # Modify the urdf to append the link of the grasped object
+        if grasped_object is not None:
+            robot_file = modidy_franka_panda_urdf_grasped_object(robot_file, grasped_object)
+
+        self.model_path = robot_file.as_posix()
+        self.name = "differentiable_denso_robot"
+        super().__init__(self.model_path, self.name, link_list=link_list, device=device)
+
 
 class DifferentiableUR10(DifferentiableTree):
     def __init__(self, link_list: Optional[str] = None, attach_gripper=False, device='cpu'):

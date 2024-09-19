@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 
 from torch_robotics.environments.env_base import EnvBase
 from torch_robotics.environments.primitives import ObjectField, MultiBoxField, MultiRoundedBoxField, MultiSphereField
-from torch_robotics.robots import RobotPanda
+from torch_robotics.robots import RobotDenso
 from torch_robotics.torch_utils.torch_utils import DEFAULT_TENSOR_ARGS
 from torch_robotics.visualizers.planning_visualizer import create_fig_and_axes
 
@@ -21,77 +21,60 @@ def create_table_object_field(tensor_args=None):
 
 
 def create_board_field(tensor_args=None):
-    width = 0.80
-    height = 2.05
-    depth = 0.28
-    side_panel_width = 0.02
+    width1 = 0.19
+    width2 = 0.38
+    depth = 0.04
+    height1 = 0.15
+    height2 = 0.56
+    center1 = [(0.5, 0.73, 0.90 + height1/2)]
+    center2 = [(0.5, 0.73, 0.90 - height2/2)]
 
-    shelf_width = width - 2*side_panel_width
-    shelf_height = 0.015
-    shelf_depth = depth
 
-    # left panel
-    centers = [(side_panel_width/2, depth/2, height/2)]
-    sizes = [(side_panel_width, depth, height)]
-    # right panel
-    centers.append((side_panel_width + shelf_width + side_panel_width/2, depth/2, height/2))
-    sizes.append((side_panel_width, depth, height))
-    # back panel
-    centers.append((side_panel_width + shelf_width/2, depth + side_panel_width/2, height/2))
-    sizes.append((shelf_width, side_panel_width, height))
+    # top board
+    centers = center1
+    sizes = [(width1, depth, height1)]
+    # bottom board
+    centers+= center2
+    sizes.append((width2, depth, height2))
 
-    # bottom shelf
-    centers.append((side_panel_width + shelf_width/2, depth/2, shelf_height/2))
-    sizes.append((shelf_width, shelf_depth, shelf_height))
+    # frame
+    frame_width = 0.02
+    frame_depth = 0.02
+    frame_height = 0.90
+    frame_centers = [(0.5, 0.73 + frame_depth/2 + depth/2, 0.45)]
+    centers += frame_centers
+    sizes.append((frame_width, frame_depth, frame_height))
 
-    # top shelf
-    centers.append((side_panel_width + shelf_width/2, depth/2, height - shelf_height/2))
-    sizes.append((shelf_width, shelf_depth, shelf_height))
-
-    # shelf 1
-    first_shelf_height = 0.82
-    centers.append((side_panel_width + shelf_width/2, depth/2, first_shelf_height + shelf_height/2))
-    sizes.append((shelf_width, shelf_depth, shelf_height))
-
-    # next shelves
-    plus_height_l = [0.23, 0.255, 0.225, 0.225]
-    for plus_height in plus_height_l:
-        center = list(copy(centers[-1]))
-        center[-1] += plus_height
-        centers.append(center)
-        sizes.append((shelf_width, shelf_depth, shelf_height))
 
     centers = np.array(centers)
-    # main_center = np.array((side_panel_width + shelf_width/2, depth/2, height/2))
-    # centers -= main_center
     sizes = np.array(sizes)
+
     boxes = MultiBoxField(centers, sizes, tensor_args=tensor_args)
     return ObjectField([boxes], 'shelf')
 
 
-class EnvTableShelf(EnvBase):
+class EnvIroningBase(EnvBase):
 
     def __init__(self, tensor_args=None, **kwargs):
         # table object field
-        table_obj_field = create_table_object_field(tensor_args=tensor_args)
-        table_sizes = table_obj_field.fields[0].sizes[0]
-        dist_robot_to_table = 0.10
-        theta = np.deg2rad(90)
-        table_obj_field.set_position_orientation(
-            pos=(dist_robot_to_table + table_sizes[1].item()/2, 0, -table_sizes[2].item()/2),
-            ori=[np.cos(theta / 2), 0, 0, np.sin(theta / 2)]
-        )
+        # table_obj_field = create_table_object_field(tensor_args=tensor_args)
+        # table_sizes = table_obj_field.fields[0].sizes[0]
+        # dist_robot_to_table = 0.10
+        # theta = np.deg2rad(90)
+        # table_obj_field.set_position_orientation(
+        #     pos=(dist_robot_to_table + table_sizes[1].item()/2, 0, -table_sizes[2].item()/2),
+        #     ori=[np.cos(theta / 2), 0, 0, np.sin(theta / 2)]
+        # )
 
         # shelf object field
-        shelf_obj_field = create_shelf_field(tensor_args=tensor_args)
+        board_obj_field = create_board_field(tensor_args=tensor_args)
         # theta = np.deg2rad(-90)
-        dist_table_shelf = 0.15
-        shelf_obj_field.set_position_orientation(
-            pos=(dist_robot_to_table, dist_table_shelf + table_sizes[0].item()/2, -table_sizes[2].item()),
+        board_obj_field.set_position_orientation(
+            pos=(0,0,0),
             # ori=[np.cos(theta / 2), 0, 0, np.sin(theta / 2)]
         )
 
-        obj_list = [table_obj_field, shelf_obj_field]
+        obj_list = [board_obj_field]
 
         super().__init__(
             name=self.__class__.__name__,
@@ -121,7 +104,7 @@ class EnvTableShelf(EnvBase):
                 'method': 'cholesky',
             },
         )
-        if isinstance(robot, RobotPanda):
+        if isinstance(robot, RobotDenso):
             return params
         else:
             raise NotImplementedError
@@ -134,14 +117,14 @@ class EnvTableShelf(EnvBase):
             n_pre_samples=50000,
             max_time=15
         )
-        if isinstance(robot, RobotPanda):
+        if isinstance(robot, RobotDenso):
             return params
         else:
             raise NotImplementedError
 
 
 if __name__ == '__main__':
-    env = EnvTableShelf(
+    env = EnvIroningBase(
         precompute_sdf_obj_fixed=True,
         sdf_cell_size=0.01,
         tensor_args=DEFAULT_TENSOR_ARGS
